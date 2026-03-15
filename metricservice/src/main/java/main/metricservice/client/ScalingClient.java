@@ -9,6 +9,7 @@ public interface ScalingClient {
 
     @PostMapping("/scaling/evaluate")
     String evaluate(@RequestParam String type,
-                    @RequestParam String state);
+                    @RequestParam String state,
+                    @RequestParam int avg);
 
 }

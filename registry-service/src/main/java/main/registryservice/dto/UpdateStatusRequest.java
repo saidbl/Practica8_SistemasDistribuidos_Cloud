@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateStatusRequest {
-
     private String nodeId;
     private String status;
-
 }

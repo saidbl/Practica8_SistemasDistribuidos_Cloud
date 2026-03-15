@@ -14,10 +14,9 @@ public class ScalingController {
 
     @PostMapping("/evaluate")
     public String evaluate(@RequestParam String type,
-                           @RequestParam String state) {
-
-        manager.evaluate(type, state);
-
+                           @RequestParam String state,
+                           @RequestParam int avg) {
+        manager.evaluate(type, state, avg);
         return "evaluated";
     }
 

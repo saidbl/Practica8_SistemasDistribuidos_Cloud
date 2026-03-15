@@ -16,9 +16,7 @@ public class MetricController {
 
     @PostMapping("/report")
     public String report(@RequestBody MetricReport report) {
-
         processor.process(report);
-
         return "metric processed";
     }
 }

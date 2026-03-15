@@ -8,12 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NodeInfo {
-
     private String nodeId;
     private String type;
     private String role;
     private long lastHeartbeat;
     private String status;
-
 }
 
