@@ -1,0 +1,149 @@
+services:
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  registry-service:
+    build: ./registry-service
+    container_name: registry-service
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  scalingservice:
+    build: ./scalingservice
+    container_name: scalingservice
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  metricservice:
+    build: ./metricservice
+    container_name: metricservice
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      scalingservice:
+        condition: service_healthy
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  failureservice:
+    build: ./failureservice
+    container_name: failureservice
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      registry-service:
+        condition: service_healthy
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      registry-service:
+        condition: service_healthy
+      metricservice:
+        condition: service_healthy
+      scalingservice:
+        condition: service_healthy
+      failureservice:
+        condition: service_healthy
+    environment:
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    networks:
+      - cloud-net
+
+  clientsimulator:
+    build: ./clientsimulator
+    container_name: clientsimulator
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    environment:
+      GATEWAY_URL: http://api-gateway:8080
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    networks:
+      - cloud-net
+
+  frontend-angular:
+    build: ./frontend-angular
+    container_name: frontend-angular
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    networks:
+      - cloud-net
+
+networks:
+  cloud-net:
+    driver: bridge

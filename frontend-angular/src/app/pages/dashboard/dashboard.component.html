@@ -1,0 +1,168 @@
+<div class="page">
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">
+        <span class="material-icons">cloud_queue</span>
+      </div>
+      <div>
+        <h1>Cloud Monitoring</h1>
+        <p>Microservicios · Métricas · Autoscaling</p>
+      </div>
+    </div>
+
+    <div class="live">
+      <span></span>
+      {{ lastUpdate || 'Pendiente' }}
+    </div>
+  </header>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <!-- KPIs -->
+  <section class="kpis">
+
+    <article class="kpi">
+      <span class="material-icons">dns</span>
+      <div>
+        <small>Nodos</small>
+        <strong>{{ totalNodes }}</strong>
+      </div>
+    </article>
+
+    <article class="kpi">
+      <span class="material-icons ok-icon">check_circle</span>
+      <div>
+        <small>Activos</small>
+        <strong>{{ activeNodes }}</strong>
+      </div>
+    </article>
+
+    <article class="kpi">
+      <span class="material-icons danger-icon">warning</span>
+      <div>
+        <small>Críticos</small>
+        <strong>{{ criticalMetrics }}</strong>
+      </div>
+    </article>
+
+    <article class="kpi">
+      <span class="material-icons purple-icon">trending_up</span>
+      <div>
+        <small>Scaling</small>
+        <strong>{{ events.length }}</strong>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- GRID -->
+  <section class="dashboard-grid">
+
+    <!-- RECURSOS -->
+    <article class="panel resources">
+      <h2>Recursos</h2>
+
+      <div class="resource-grid">
+        <div class="resource-card" *ngFor="let group of resourceGroups.slice(0,5)">
+
+          <div class="resource-left">
+            <span class="material-icons">hub</span>
+
+            <div>
+              <strong>{{ group.type }}</strong>
+              <small>{{ group.nodes.length }} nodos</small>
+            </div>
+          </div>
+
+          <div class="resource-right">
+            <small>Instancias</small>
+            <b>{{ group.instances }}</b>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <!-- CLUSTER -->
+    <article class="panel cluster">
+      <h2>Cluster</h2>
+
+      <div class="compact-list">
+        <div class="compact-row" *ngFor="let item of clusterEntries.slice(0,5)">
+          <span>{{ item.type }}</span>
+          <strong>{{ item.instances }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <!-- METRICAS -->
+    <article class="panel metrics">
+      <h2>Métricas</h2>
+
+      <div class="compact-list">
+        <div class="metric-row" *ngFor="let m of latestMetrics.slice(0,5)">
+
+          <div>
+            <strong>{{ m.nodeId }}</strong>
+            <small>{{ m.type }}</small>
+          </div>
+
+          <div class="metric-right">
+            <b>{{ m.value }}</b>
+            <em [class]="getMetricClass(m.state)">
+              {{ m.state }}
+            </em>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <!-- EVENTOS -->
+    <article class="panel events">
+      <h2>Eventos</h2>
+
+      <div class="compact-list">
+        <div class="event-row" *ngFor="let e of latestEvents.slice(0,5)">
+
+          <span [class]="'event-tag ' + getEventClass(e.action)">
+            {{ e.action }}
+          </span>
+
+          <div>
+            <strong>{{ e.type }}</strong>
+            <small>{{ formatTime(e.timestamp) }}</small>
+          </div>
+
+        </div>
+      </div>
+    </article>
+
+    <!-- NODOS -->
+    <article class="panel nodes">
+      <h2>Nodos</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let n of nodes.slice(0,5)">
+            <td>{{ n.type }}</td>
+            <td>
+              <span class="status" [class]="getStatusClass(n.status)">
+                {{ n.status }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+
+  </section>
+</div>

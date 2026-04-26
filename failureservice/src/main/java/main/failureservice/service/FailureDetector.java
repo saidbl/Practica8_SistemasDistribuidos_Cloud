@@ -2,45 +2,41 @@ package main.failureservice.service;
 
 import main.failureservice.client.RegistryClient;
 import main.failureservice.model.NodeInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 
 @Service
 public class FailureDetector {
 
-    private static final long HEARTBEAT_TIMEOUT = 8000;
-
     @Autowired
     private RegistryClient registryClient;
 
-    @Scheduled(fixedDelay = 4000)
+    @Scheduled(fixedDelay = 5000, initialDelay = 30000)
     public void checkNodes() {
-        var nodes = registryClient.getNodes();
-        long now = System.currentTimeMillis();
-        for (NodeInfo node : nodes) {
-            long diff = now - node.getLastHeartbeat();
-            String newStatus = "ALIVE";
-            if (diff > HEARTBEAT_TIMEOUT * 2) {
-                newStatus = "DEAD";
+        try {
+            var nodes = registryClient.getNodes();
+
+            if (nodes == null || nodes.isEmpty()) {
+                System.out.println("[FAILURE] No nodes registered yet");
+                return;
             }
-            else if (diff > HEARTBEAT_TIMEOUT) {
-                newStatus = "SUSPECT";
+
+            long now = System.currentTimeMillis();
+
+            for (NodeInfo node : nodes) {
+                long diff = now - node.getLastHeartbeat();
+
+                if (diff > 10000) {
+                    System.out.println("[FAILURE DETECTED] node=" + node.getNodeId()
+                            + " type=" + node.getType()
+                            + " lastHeartbeat=" + diff + "ms");
+                }
             }
-            if (!newStatus.equals(node.getStatus())) {
-                var body = new HashMap<String,String>();
-                body.put("nodeId", node.getNodeId());
-                body.put("status", newStatus);
-                registryClient.updateStatus(body);
-                System.out.println(
-                        "[FAILURE] node=" +
-                        node.getNodeId() +
-                        " status=" +
-                        newStatus
-                );
-            }
+
+        } catch (Exception e) {
+            System.out.println("[FAILURE] Registry not ready yet, retrying...");
         }
     }
 }
